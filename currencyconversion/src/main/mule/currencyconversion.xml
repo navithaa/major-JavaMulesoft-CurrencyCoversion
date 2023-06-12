@@ -1,0 +1,33 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<mule xmlns:ee="http://www.mulesoft.org/schema/mule/ee/core" xmlns:currencyconversion-custom="http://www.mulesoft.org/schema/mule/currencyconversion-custom"
+	xmlns:http="http://www.mulesoft.org/schema/mule/http"
+	xmlns="http://www.mulesoft.org/schema/mule/core" xmlns:doc="http://www.mulesoft.org/schema/mule/documentation" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd
+http://www.mulesoft.org/schema/mule/http http://www.mulesoft.org/schema/mule/http/current/mule-http.xsd
+http://www.mulesoft.org/schema/mule/currencyconversion-custom http://www.mulesoft.org/schema/mule/currencyconversion-custom/current/mule-currencyconversion-custom.xsd
+http://www.mulesoft.org/schema/mule/ee/core http://www.mulesoft.org/schema/mule/ee/core/current/mule-ee.xsd">
+	<http:listener-config name="HTTP_Listener_config" doc:name="HTTP Listener config" doc:id="14660422-5224-4040-befb-f7d7bfe6089c" >
+		<http:listener-connection host="0.0.0.0" port="8081" />
+	</http:listener-config>
+<http:request-config name="HTTP_Request_configuration" doc:name="HTTP Request configuration" doc:id="a0feaa88-b81a-43cb-80c5-0c24d8661699">
+		<http:request-connection protocol="HTTPS" host="api.currency.com" port="443" />
+	</http:request-config>
+	<flow name="currencyconversionFlow" doc:id="67dbc61b-f43d-4cff-8d2b-95db5f218b00" >
+		<http:listener doc:name="Listener" doc:id="3321541f-e865-48fa-9417-28bde3808d0e" config-ref="HTTP_Listener_config" path="/convertCurrency"/>
+		<logger level="INFO" doc:name="Currency flow starts" doc:id="399cdb97-f0aa-484e-80c3-be8c521c9dc0" message="Currency flow starts"/>
+		<set-payload value="#[payload]" doc:name="Input" doc:id="663cf963-64fd-47a0-b114-dd7a64628a99" />
+		<currencyconversion-custom:convert-currency doc:name="Convert currency" doc:id="2910f833-88b0-4313-9659-0a27f9f5fbe6" sourceCurrencyCode="#[payload.SourceCurrencyCode as String]" targetCurrencyCode="#[payload.TargetCurrencyCode as String]" amount="#[payload.Amount]"/>
+		<ee:transform doc:name="Output" doc:id="5867b739-e7bd-4fe9-a375-cf1f91a75510" >
+			<ee:message >
+				<ee:set-payload ><![CDATA[%dw 2.0
+output application/json
+---
+{
+	convertedAmount: payload
+}]]></ee:set-payload>
+			</ee:message>
+		</ee:transform>
+		<logger level="INFO" doc:name="Currency flow ends" doc:id="a9cf9049-ee9b-4e1f-ab51-f23a55d8355a" message="Currency flow ends"/>
+	
+</flow>
+</mule>
